@@ -1,5 +1,14 @@
-import { useState } from 'react'
-// import { supabase } from './supabaseClient' // 将来的にコメントを解除
+import { useState, useEffect } from 'react'
+import { supabase } from './supabaseClient' // 作成したSupabaseクライアントをインポート
+
+// --- 型定義 ---
+// Supabaseの 'clients' テーブルの構造に合わせる
+interface Client {
+  id: number;
+  created_at: string;
+  name: string;
+  is_active: boolean;
+}
 
 // --- UIコンポーネント定義 ---
 
@@ -21,7 +30,7 @@ const MainButton = ({
   </button>
 )
 
-// モーダルキャンセルボタン（GASアプリのスタイルを継承）
+// モーダルキャンセルボタン
 const ModalCancelButton = ({ 
   children, 
   onClick 
@@ -37,27 +46,19 @@ const ModalCancelButton = ({
   </button>
 )
 
-
-// コア原則: カード型レイアウト（白背景、box-shadow）
-const ClientCard = ({ 
-  clientName, 
-  active 
-}: { 
-  clientName: string, 
-  active: boolean 
-}) => (
+// コア原則: カード型レイアウト（Client型を受け取るように変更）
+const ClientCard = ({ client }: { client: Client }) => (
   <div className="bg-white p-6 rounded-lg shadow-card cursor-pointer transition-all hover:shadow-lg">
     <div className="flex justify-between items-center">
-      <span className="text-lg font-bold">{clientName}</span>
+      <span className="text-lg font-bold">{client.name}</span>
       <span className={`text-sm font-medium px-3 py-1 rounded-full ${
-        active 
+        client.is_active 
           ? 'bg-green-100 text-green-800' 
           : 'bg-gray-100 text-gray-500'
       }`}>
-        {active ? 'Active' : 'Inactive'}
+        {client.is_active ? 'Active' : 'Inactive'}
       </span>
     </div>
-    {/* 将来的に: クリックすると詳細ページに飛ぶ <Link> にする */}
   </div>
 )
 
@@ -65,13 +66,64 @@ const ClientCard = ({
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  
+  // --- Supabase データ取得ロジック ---
+  const [clients, setClients] = useState<Client[]>([]) // Client型の配列としてステートを定義
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // モックデータ（将来的にSupabaseから取得）
-  const clients = [
-    { id: 1, name: '株式会社クライアントA', active: true },
-    { id: 2, name: '株式会社クライアントB', active: true },
-    { id: 3, name: '株式会社クライアントC', active: false },
-  ];
+  useEffect(() => {
+    // データを取得する非同期関数を定義
+    const fetchClients = async () => {
+      setLoading(true)
+      setError(null)
+      
+      // Supabaseの 'clients' テーブルから全ての列(*)を選択
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('name', { ascending: true }) //名前順でソート
+
+      if (error) {
+        console.error('Error fetching clients:', error)
+        setError(error.message)
+        setClients([])
+      } else {
+        setClients(data || [])
+      }
+      
+      setLoading(false)
+    }
+
+    // 関数を実行
+    fetchClients()
+  }, []) // 第2引数が空配列 [] なので、コンポーネントのマウント時に1回だけ実行されます
+
+  // --- ローディング・エラー表示 ---
+  const renderContent = () => {
+    if (loading) {
+      return <div className="text-center p-8">データを読み込み中...</div>
+    }
+    
+    if (error) {
+      return <div className="text-center p-8 text-red-600">エラーが発生しました: {error}</div>
+    }
+    
+    if (clients.length === 0) {
+      return <div className="text-center p-8 text-gray-500">クライアントデータがありません。</div>
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {clients.map(client => (
+          <ClientCard 
+            key={client.id} 
+            client={client} // clientオブジェクト全体を渡す
+          />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -91,20 +143,12 @@ function App() {
         </div>
       </header>
 
-      {/* --- メインコンテンツ (クライアント一覧) --- */}
+      {/* --- メインコンテンツ (Supabaseから取得したデータ) --- */}
       <main>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {clients.map(client => (
-            <ClientCard 
-              key={client.id} 
-              clientName={client.name} 
-              active={client.active} 
-            />
-          ))}
-        </div>
+        {renderContent()}
       </main>
 
-      {/* --- 新規プロジェクト登録モーダル (プレースホルダー) --- */}
+      {/* --- 新規プロジェクト登録モーダル (変更なし) --- */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
