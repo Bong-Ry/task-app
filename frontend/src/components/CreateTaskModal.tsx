@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import Button from './UI/Button'; // 汎用ボタンをインポート
+import Button from './UI/Button'; 
+import ModalCard from './UI/ModalCard'; // ★ ModalCardをインポート
+import { Input, Select } from './UI/Input'; // ★ Input, Selectをインポート
 
 // --- 型定義 ---
 
@@ -13,7 +15,6 @@ interface Project {
   id: number;
   name: string;
   client_id: number;
-  // ★ クライアント名を表示するために、結合して取得する
   clients: Pick<Client, 'name'> | null; 
 }
 
@@ -58,9 +59,6 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
   const [error, setError] = useState<string | null>(null);
   
   const taskStatusOptions = ['未着手', '進行中', '保留中', '完了'];
-
-  // ★新しい入力フィールドスタイル (AuthPageと統一)
-  const inputStyle = "w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150";
 
 
   // --- プロジェクト一覧をプルダウン用に取得 ---
@@ -144,109 +142,95 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
     return `${project.name} (クライアント: ${clientName})`;
   }
 
+  const footerButtons = (
+    <>
+      <ModalCancelButton onClick={handleClose}>キャンセル</ModalCancelButton>
+      <Button 
+        onClick={handleSubmit} 
+        disabled={isSubmitting || isLoadingProjects}
+        variant="primary"
+      >
+        {isSubmitting ? '登録中...' : 'タスク登録'}
+      </Button>
+    </>
+  );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={handleClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
-        {/* モーダルヘッダー */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-bold">新規タスク登録</h2>
-          <button 
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-800 text-3xl font-bold"
-          >
-            &times;
-          </button>
-        </div>
-        
-        {/* モーダルボディ（フォーム） */}
-        <div className="p-6 space-y-4">
-          {isLoadingProjects ? (
+    <ModalCard
+        title="新規タスク登録"
+        onClose={handleClose}
+        footerButtons={footerButtons}
+        maxWidthClass="max-w-2xl"
+    >
+        {isLoadingProjects ? (
             <p>プロジェクトを読み込み中...</p>
-          ) : (
-            <div>
-              <label htmlFor="project-select" className="block text-sm font-medium text-gray-700 mb-1">
-                所属プロジェクト <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="project-select"
-                value={selectedProjectId}
-                onChange={(e) => setSelectedProjectId(e.target.value)}
-                className={inputStyle}
-              >
-                <option value="">-- プロジェクトを選択 --</option>
-                {projects.map(project => (
-                  <option key={project.id} value={project.id}>
-                    {getProjectDisplayName(project)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          
-          <div>
-            <label htmlFor="task-name" className="block text-sm font-medium text-gray-700 mb-1">
-              タスク名 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="task-name"
-              value={taskName}
-              onChange={(e) => setTaskName(e.target.value)}
-              className={inputStyle}
-              placeholder="例: LPデザインレビュー"
-            />
-          </div>
+        ) : (
+            <div className="space-y-4">
+                
+                <div>
+                    <label htmlFor="project-select" className="block text-sm font-medium text-gray-700 mb-1">
+                        所属プロジェクト <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                        id="project-select"
+                        value={selectedProjectId}
+                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                    >
+                        <option value="">-- プロジェクトを選択 --</option>
+                        {projects.map(project => (
+                            <option key={project.id} value={project.id}>
+                                {getProjectDisplayName(project)}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
+                
+                <div>
+                    <label htmlFor="task-name" className="block text-sm font-medium text-gray-700 mb-1">
+                        タスク名 <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                        type="text"
+                        id="task-name"
+                        value={taskName}
+                        onChange={(e) => setTaskName(e.target.value)}
+                        placeholder="例: LPデザインレビュー"
+                    />
+                </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="task-status" className="block text-sm font-medium text-gray-700 mb-1">
-                ステータス <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="task-status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className={inputStyle}
-              >
-                {taskStatusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="due-date" className="block text-sm font-medium text-gray-700 mb-1">
-                期限日
-              </label>
-              <input
-                type="date"
-                id="due-date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className={inputStyle}
-              />
-            </div>
-          </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="task-status" className="block text-sm font-medium text-gray-700 mb-1">
+                            ステータス <span className="text-red-500">*</span>
+                        </label>
+                        <Select
+                            id="task-status"
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                        >
+                            {taskStatusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                        </Select>
+                    </div>
+                    <div>
+                        <label htmlFor="due-date" className="block text-sm font-medium text-gray-700 mb-1">
+                            期限日
+                        </label>
+                        <Input
+                            type="date"
+                            id="due-date"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                        />
+                    </div>
+                </div>
 
-          {error && (
-            <div className="text-red-600 text-sm p-3 bg-red-50 rounded-md">
-              {error}
+                {error && (
+                    <div className="text-red-600 text-sm p-3 bg-red-50 rounded-md">
+                        {error}
+                    </div>
+                )}
             </div>
-          )}
-        </div>
-        
-        {/* モーダルフッター */}
-        <div className="flex justify-end p-4 border-t bg-gray-50 space-x-3">
-          <ModalCancelButton onClick={handleClose}>
-            キャンセル
-          </ModalCancelButton>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isSubmitting || isLoadingProjects}
-            variant="primary"
-          >
-            {isSubmitting ? '登録中...' : 'タスク登録'}
-          </Button>
-        </div>
-      </div>
-    </div>
+        )}
+    </ModalCard>
   )
 }
