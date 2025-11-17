@@ -1,6 +1,6 @@
 import React, { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 
-// 基本となる入力フィールドのスタイル
+// 基本となる入力フィールドのスタイル (ここで全てのユーティリティクラスを定義)
 const baseInputStyle = "w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {

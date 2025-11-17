@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    /* ベースフォントと色の定義のみを残す */
+    /* ベースフォントの定義のみを残し、他の @apply は全て削除 */
     font-family: 'Noto Sans JP', sans-serif;
     color: #333; 
     -webkit-font-smoothing: antialiased;
@@ -14,11 +14,6 @@
   }
 }
 
-/* カスタムスタイル */
+/* @layer components ブロック全体を空にします */
 @layer components {
-  /* 以前ここで定義されていた .content-card や .input-field は、
-    Tailwindのベストプラクティスに基づき、各コンポーネント（JSX）に
-    直接ユーティリティクラスとして適用されました。これにより、
-    Tailwindのコンパイルエラーは発生しなくなります。
-  */
 }
