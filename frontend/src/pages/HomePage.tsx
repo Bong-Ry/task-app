@@ -72,9 +72,6 @@ function HomePage() {
     // 本日の日付を取得し、'YYYY-MM-DD' 形式に整形
     const today = new Date().toISOString().split('T')[0];
     
-    // Supabase RPC (Stored Procedure) を使用すると、日付比較が容易になるが、
-    // ここでは単純な日付比較が可能なようにクエリを構築
-    
     // 期限日が今日の日付と一致するタスクを取得
     const { data, error } = await supabase
         .from('tasks')
@@ -84,7 +81,7 @@ function HomePage() {
         `)
         .eq('due_date', today) 
         .neq('status', '完了') // 完了済みのタスクは除外
-        .order('status', { ascending: true }) // ステータス順でソート（DB側でのソートは限界があるため、フロントで調整が必要な場合もある）
+        .order('status', { ascending: true }) 
 
 
     if (error) {
@@ -129,7 +126,7 @@ function HomePage() {
     }
 
     return (
-      <div className="content-card overflow-hidden">
+      <div className="bg-white p-6 rounded-xl shadow-lg transition-shadow duration-300 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -170,9 +167,8 @@ function HomePage() {
       {/* 2. Project List / Timeline */}
       <section>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">📊 Project List</h2>
-          {/* ProjectsPageの代わりに、ProjectsPageを直接インポートして表示 */}
-          {/* <ProjectsPage /> としたいが、Routerの制約があるため、一旦ダミーで代替 */}
-          <div className="content-card p-6 min-h-[300px]">
+          {/* ★修正: ユーティリティを直接適用 */}
+          <div className="bg-white p-6 rounded-xl shadow-lg transition-shadow duration-300 min-h-[300px]"> 
              <p className="text-gray-500">（プロジェクト一覧は、ナビゲーションバーの「プロジェクト管理」からアクセスしてください。ここにタイムライングラフを統合する予定です。）</p>
           </div>
       </section>

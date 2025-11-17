@@ -146,7 +146,10 @@ function ProjectsPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 プロジェクト一覧</h2>
-      {renderContent()}
+      {/* ★修正: ユーティリティを直接適用 */}
+      <div className="bg-white p-6 rounded-xl shadow-lg transition-shadow duration-300">
+        {renderContent()}
+      </div>
     </div>
   )
 }

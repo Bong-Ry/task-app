@@ -41,12 +41,14 @@ function MindmapPage() {
         const parentTasksByProject = new Map<number, TaskRaw[]>();
 
         tasks.forEach(task => {
-            if (task.parent_task_id) {
+            // ★ 注意: DBでparent_task_idカラムがBIGINTである前提です
+            const parentId = task.parent_task_id as number | null; 
+            if (parentId) {
                 // サブタスク
-                if (!tasksByParent.has(task.parent_task_id)) {
-                    tasksByParent.set(task.parent_task_id, []);
+                if (!tasksByParent.has(parentId)) {
+                    tasksByParent.set(parentId, []);
                 }
-                tasksByParent.get(task.parent_task_id)!.push(task);
+                tasksByParent.get(parentId)!.push(task);
             } else {
                 // 親タスク
                 if (!parentTasksByProject.has(task.project_id)) {
@@ -91,7 +93,6 @@ function MindmapPage() {
         });
 
         // 4. クライアント階層（ルート）を構築
-        // GASアプリのように、一旦全てのクライアントをルートノードの子として表示（簡易版）
         return {
             id: 'root',
             name: '全クライアント',
@@ -110,20 +111,14 @@ function MindmapPage() {
             const [clientsRes, projectsRes, tasksRes] = await Promise.all([
                 supabase.from('clients').select('id, name'),
                 supabase.from('projects').select('id, client_id, name'),
-                supabase.from('tasks').select('id, project_id, name').is('parent_task_id', null), // 親タスクのみ
-                // ★注意: Supabaseでは、サブタスクは別途取得し、フロントエンドで組み立てるか、
-                // PostgreSQLの再帰クエリ（CTE）を使ったRPCが必要です。ここでは簡易化のため、
-                // 再帰的なタスクはスキップします。
-
-                // TODO: 実際のサブタスクの取得は、このステップでは難しいため、
-                // プロジェクトとタスク（親）のみの階層とします。
+                // ★ 全タスクを取得 (Subtaskの親IDを含む)
+                supabase.from('tasks').select('id, project_id, name, parent_task_id'), 
             ]);
 
             if (clientsRes.error || projectsRes.error || tasksRes.error) {
                 throw new Error("データ取得エラー: " + (clientsRes.error?.message || projectsRes.error?.message || tasksRes.error?.message));
             }
             
-            // 簡略化のため、階層化ロジックはスキップし、一旦クライアント->プロジェクトのみ表示
             const mapStructure: MindmapNode | null = buildMindmapHierarchy(
                 clientsRes.data || [], 
                 projectsRes.data || [], 
@@ -144,20 +139,24 @@ function MindmapPage() {
         fetchData();
     }, []); 
 
-    // --- D3描画ロジックの実行 (最小限のセットアップ) ---
+    // --- D3描画ロジックの実行 ---
     useEffect(() => {
         if (mapData && svgRef.current) {
             // D3描画の初期化処理
-            const width = svgRef.current.clientWidth;
-            const height = svgRef.current.clientHeight;
+            const container = svgRef.current.parentElement;
+            if (!container) return;
+
+            const width = container.clientWidth;
+            const height = 600; // 固定の高さを使用
 
             const svg = d3.select(svgRef.current)
-                .attr("width", "100%")
+                .attr("width", width)
                 .attr("height", height)
-                .html(''); // 既存の描画をクリア
+                .html(''); 
 
-            const g = svg.append("g").attr("transform", `translate(50, ${height / 2})`); // ツリーのルート位置
+            const g = svg.append("g").attr("transform", `translate(50, ${height / 2})`); 
 
+            // D3のツリーレイアウトを使用
             const treeLayout = d3.tree<MindmapNode>().size([height, width - 200]);
             
             const root = d3.hierarchy(mapData);
@@ -170,6 +169,7 @@ function MindmapPage() {
                 .attr('class', 'link')
                 .attr('fill', 'none')
                 .attr('stroke', '#ccc')
+                .attr('stroke-width', 2)
                 .attr('d', d3.linkHorizontal()
                     .x((d: any) => d.y)
                     .y((d: any) => d.x)
@@ -195,13 +195,11 @@ function MindmapPage() {
                 .attr('dy', 5)
                 .attr('x', 12)
                 .text(d => d.data.name)
-                .style('font-size', '12px');
-
-            console.log("D3.js 描画完了");
+                .style('font-size', '14px');
 
         }
     }, [mapData]); 
-    // D3.jsの描画スタイルは、src/index.cssにカスタムクラスを追加することで、より洗練させることができます。
+
 
     return (
         <div>
@@ -216,6 +214,7 @@ function MindmapPage() {
                 {loading && <div className="p-8 text-center">データを構築中...</div>}
                 {error && <div className="p-8 text-center text-red-600">エラー: {error}</div>}
                 {mapData && !loading && (
+                    // D3描画キャンバス
                     <svg ref={svgRef} style={{ width: '100%', height: '600px' }}></svg>
                 )}
                 {!mapData && !loading && !error && (

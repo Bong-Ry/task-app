@@ -1,4 +1,4 @@
-// src/pages/AuthPage.tsx (新規ファイル・全文)
+// src/pages/AuthPage.tsx (修正・全文)
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import Button from '../components/UI/Button';
@@ -21,13 +21,14 @@ function AuthPage() {
 
     let result;
     if (isNewUser) {
-      // 新規登録 (サインアップ)
+      // 新規登録 (サインアップ) - サインアップ後、自動でセッションが開始されログイン状態になる
       result = await supabase.auth.signUp({
         email,
         password,
       });
       if (!result.error) {
-        setMessage('登録が完了しました。ログインしてください。');
+        // 自動ログインされるため、成功メッセージを表示するのみ
+        setMessage('アカウントの登録に成功しました。メイン画面に移動中です...'); 
       }
     } else {
       // 既存ユーザーでサインイン
@@ -35,34 +36,41 @@ function AuthPage() {
         email,
         password,
       });
+      if (!result.error) {
+         setMessage('ログインに成功しました。');
+      }
     }
 
     setLoading(false);
 
     if (result.error) {
       setError(result.error.message);
-    } else if (result.data.user) {
-      // ログイン成功時
-      setMessage('ログインに成功しました！');
-      // ★リダイレクトは不要。App.tsxがセッション変更を検知します。
+      setMessage('');
     }
+    // ログイン成功時はApp.tsxのonAuthStateChangeが検知し、自動で画面が切り替わる
   };
 
+  const inputStyle = "w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150";
+
   return (
-    <div className="flex justify-center items-center h-screen bg-base-bg">
-      <div className="bg-white p-8 rounded-lg shadow-card w-full max-w-sm">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          {isNewUser ? '新規アカウント登録' : 'ログイン'}
+    // UI改善: 背景色と中央配置の調整
+    <div className="flex justify-center items-center min-h-screen bg-gray-50"> 
+      <div className="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md border border-gray-100">
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-2 text-center">
+          プロジェクト管理
         </h2>
+        <p className="text-center text-gray-500 mb-8">
+            {isNewUser ? '新規アカウントを作成' : 'サインイン'}
+        </p>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputStyle}
               required
               disabled={loading}
             />
@@ -73,33 +81,33 @@ function AuthPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputStyle}
               required
               disabled={loading}
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm p-3 bg-red-50 rounded-md">{error}</div>
+            <div className="text-red-700 text-sm p-3 bg-red-100 rounded-lg border border-red-300">{error}</div>
           )}
           {message && (
-            <div className="text-green-600 text-sm p-3 bg-green-50 rounded-md">{message}</div>
+            <div className="text-green-700 text-sm p-3 bg-green-100 rounded-lg border border-green-300">{message}</div>
           )}
 
           <Button 
             type="submit" 
             onClick={() => {}}
-            className="w-full" 
+            className="w-full py-3" 
             disabled={loading}
           >
             {loading ? '処理中...' : isNewUser ? 'アカウント登録' : 'サインイン'}
           </Button>
         </form>
 
-        <p className="text-center text-sm mt-4">
+        <p className="text-center text-sm mt-6">
           <button
             onClick={() => setIsNewUser(!isNewUser)}
-            className="text-blue-600 hover:text-blue-800"
+            className="font-medium text-blue-600 hover:text-blue-800 transition duration-150"
           >
             {isNewUser ? '>> 既存アカウントでサインイン' : '>> 新規アカウントを作成'}
           </button>

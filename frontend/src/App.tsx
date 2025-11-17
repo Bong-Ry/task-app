@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react' // ★ useEffect を追加
+import { useState, useEffect } from 'react'
 import { Routes, Route, Link, Outlet, useOutletContext } from 'react-router-dom' 
-import { supabase } from './supabaseClient'; // ★ supabaseクライアントをインポート
+import { supabase } from './supabaseClient';
 
 import Button from './components/UI/Button' 
 
@@ -11,7 +11,7 @@ import TasksPage from './pages/TasksPage'
 import HomePage from './pages/HomePage' 
 import MeetingsPage from './pages/MeetingsPage' 
 import MindmapPage from './pages/MindmapPage' 
-import AuthPage from './pages/AuthPage' // ★ 認証ページをインポート
+import AuthPage from './pages/AuthPage' 
 
 // モーダルコンポーネントをインポート
 import { CreateProjectModal } from './components/CreateProjectModal' 
@@ -28,7 +28,7 @@ type AppContextType = {
 // --- Appコンポーネント（レイアウト + ルーティング） ---
 
 function App() {
-  const [session, setSession] = useState<any>(null); // ★ ログインセッションの状態
+  const [session, setSession] = useState<any>(null);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false) 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)       
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false) 
@@ -75,58 +75,58 @@ function App() {
 
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    // ★ 修正: min-h-screen bg-gray-50 text-gray-800 を直接適用
+    <div className="min-h-screen bg-gray-50 text-gray-800">
       
       {/* --- ヘッダー（全ページ共通） --- */}
-      <header className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          <Link to="/">プロジェクト管理</Link>
-        </h1>
-        <div className="flex space-x-4">
-          <Link to="/clients">
-            <Button onClick={() => {}}>
-              クライアント管理
-            </Button>
-          </Link>
-          <Link to="/projects"> 
-            <Button onClick={() => {}}>
-              プロジェクト一覧
-            </Button>
-          </Link>
-          <Link to="/tasks"> 
-            <Button onClick={() => {}}>
-              タスク管理
-            </Button>
-          </Link>
-          <Link to="/meetings"> 
-            <Button onClick={() => {}}>
-              議事録管理
-            </Button>
-          </Link>
-          <Link to="/mindmap"> 
-            <Button onClick={() => {}}>
-              マインドマップ
-            </Button>
-          </Link>
+      <header className="bg-white shadow-md border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           
-          <Button onClick={() => setIsProjectModalOpen(true)}>
-            ＋ 新規プロジェクト
-          </Button>
-          <Button onClick={() => setIsTaskModalOpen(true)}>
-            ＋ 新規タスク
-          </Button>
-          <Button onClick={() => setIsMeetingModalOpen(true)}>
-            ＋ 新規議事録
-          </Button>
-          {/* ★ サインアウトボタン */}
-          <Button onClick={handleSignOut} className="ml-4 border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
-            サインアウト
-          </Button>
+          {/* 左側: ロゴとナビゲーション */}
+          <div className="flex items-center space-x-6">
+            <h1 className="text-2xl font-extrabold text-blue-600">
+              <Link to="/">TaskApp</Link>
+            </h1>
+            {/* ナビゲーションリンク */}
+            <nav className="hidden md:flex space-x-4">
+              <NavLink to="/projects">プロジェクト</NavLink>
+              <NavLink to="/tasks">タスク</NavLink>
+              <NavLink to="/clients">クライアント</NavLink>
+              <NavLink to="/meetings">議事録</NavLink>
+              <NavLink to="/mindmap">マインドマップ</NavLink>
+            </nav>
+          </div>
+          
+          {/* 右側: アクションボタンとユーザー情報 */}
+          <div className="flex space-x-3 items-center">
+            
+            {/* 新規作成ボタン群 */}
+            <div className="hidden sm:flex space-x-2">
+                <Button variant="secondary" onClick={() => setIsProjectModalOpen(true)} className="text-sm py-1.5">
+                    ＋ PJT
+                </Button>
+                <Button variant="secondary" onClick={() => setIsTaskModalOpen(true)} className="text-sm py-1.5">
+                    ＋ Task
+                </Button>
+                <Button variant="secondary" onClick={() => setIsMeetingModalOpen(true)} className="text-sm py-1.5">
+                    ＋ 議事録
+                </Button>
+            </div>
+
+            {/* サインアウトボタン */}
+            <Button 
+                onClick={handleSignOut} 
+                variant="link" 
+                className="text-gray-500 hover:text-red-600 text-sm"
+            >
+                サインアウト
+            </Button>
+          </div>
         </div>
       </header>
 
       {/* --- メインコンテンツ（ページ切り替え部分） --- */}
-      <main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Routes>
           <Route 
             path="/" 
@@ -168,6 +168,17 @@ function App() {
     </div>
   )
 }
+
+// ナビゲーション用のヘルパーコンポーネント
+const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => (
+    <Link 
+        to={to} 
+        className="text-gray-600 hover:text-blue-600 font-medium py-2 transition duration-150"
+    >
+        {children}
+    </Link>
+)
+
 
 export function useProjectRefresh() {
   return useOutletContext<AppContextType>();

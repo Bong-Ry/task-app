@@ -59,6 +59,9 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
   
   const taskStatusOptions = ['未着手', '進行中', '保留中', '完了'];
 
+  // ★新しい入力フィールドスタイル (AuthPageと統一)
+  const inputStyle = "w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150";
+
 
   // --- プロジェクト一覧をプルダウン用に取得 ---
   useEffect(() => {
@@ -169,7 +172,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
                 id="project-select"
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className={inputStyle}
               >
                 <option value="">-- プロジェクトを選択 --</option>
                 {projects.map(project => (
@@ -190,7 +193,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
               id="task-name"
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputStyle}
               placeholder="例: LPデザインレビュー"
             />
           </div>
@@ -204,7 +207,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
                 id="task-status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className={inputStyle}
               >
                 {taskStatusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
@@ -218,7 +221,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
                 id="due-date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className={inputStyle}
               />
             </div>
           </div>
@@ -238,6 +241,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreated }: CreateTaskMo
           <Button 
             onClick={handleSubmit} 
             disabled={isSubmitting || isLoadingProjects}
+            variant="primary"
           >
             {isSubmitting ? '登録中...' : 'タスク登録'}
           </Button>

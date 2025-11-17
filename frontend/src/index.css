@@ -6,10 +6,19 @@
 
 @layer base {
   body {
-    background-color: #f8f7f7; /* 標準の背景色 (off-white) */
-    font-family: 'Noto Sans JP', sans-serif; /* 標準フォント */
-    color: #333; /* 標準の文字色 */
+    /* ベースフォントと色の定義のみを残す */
+    font-family: 'Noto Sans JP', sans-serif;
+    color: #333; 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* カスタムスタイル */
+@layer components {
+  /* 以前ここで定義されていた .content-card や .input-field は、
+    Tailwindのベストプラクティスに基づき、各コンポーネント（JSX）に
+    直接ユーティリティクラスとして適用されました。これにより、
+    Tailwindのコンパイルエラーは発生しなくなります。
+  */
 }

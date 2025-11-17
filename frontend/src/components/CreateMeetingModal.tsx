@@ -1,4 +1,4 @@
-// src/components/CreateMeetingModal.tsx (新規ファイル・全文)
+// src/components/CreateMeetingModal.tsx (修正・全文)
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import Button from './UI/Button'; 
@@ -51,6 +51,9 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }: Create
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ★新しい入力フィールドスタイル (AuthPageと統一)
+  const inputStyle = "w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150";
 
 
   // --- クライアント一覧をプルダウン用に取得 ---
@@ -152,7 +155,7 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }: Create
                 id="client-select"
                 value={selectedClientId}
                 onChange={(e) => setSelectedClientId(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className={inputStyle}
               >
                 <option value="">-- クライアントを選択 --</option>
                 {activeClients.map(client => (
@@ -173,7 +176,7 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }: Create
                 id="meeting-date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className={inputStyle}
               />
             </div>
           </div>
@@ -188,7 +191,7 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }: Create
               id="meeting-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputStyle}
               placeholder="例: 第3回 定例ミーティング議事録"
             />
           </div>
@@ -203,7 +206,7 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }: Create
               id="meeting-url"
               value={fileUrl}
               onChange={(e) => setFileUrl(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputStyle}
               placeholder="https://drive.google.com/..."
             />
           </div>
@@ -218,7 +221,7 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }: Create
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               rows={3}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={`${inputStyle} resize-none`}
               placeholder="決定事項やネクストアクションの要約"
             />
           </div>
@@ -238,6 +241,7 @@ export function CreateMeetingModal({ isOpen, onClose, onMeetingCreated }: Create
           <Button 
             onClick={handleSubmit} 
             disabled={isSubmitting || isLoadingClients}
+            variant="primary"
           >
             {isSubmitting ? '登録中...' : '議事録登録'}
           </Button>

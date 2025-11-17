@@ -1,27 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
+import Button from './UI/Button' // Buttonをインポート (MainButtonから変更)
 
 // --- UIコンポーネント定義（モーダル内で使うもの） ---
-const MainButton = ({ 
-  children, 
-  onClick,
-  disabled = false,
-  className = ""
-}: { 
-  children: React.ReactNode, 
-  onClick: () => void,
-  disabled?: boolean,
-  className?: string
-}) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className={`border border-gray-800 text-gray-800 font-medium py-2 px-4 rounded-md transition-all duration-300 hover:bg-gray-800 hover:text-white disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-300 ${className}`}
-  >
-    {children}
-  </button>
-)
-
+// NOTE: MainButtonはButtonに統一されたため、ここではModalCancelButtonのみ再定義
 const ModalCancelButton = ({ 
   children, 
   onClick 
@@ -61,6 +43,10 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
   
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // ★新しい入力フィールドスタイル (AuthPageと統一)
+  const inputStyle = "w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150";
+
 
   // --- クライアント一覧をプルダウン用に取得 ---
   useEffect(() => {
@@ -157,7 +143,7 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
                 id="client-select"
                 value={selectedClientId}
                 onChange={(e) => setSelectedClientId(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className={inputStyle}
               >
                 <option value="">-- クライアントを選択 --</option>
                 {clients.map(client => (
@@ -178,7 +164,7 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
               id="project-name"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputStyle}
               placeholder="例: 2025年度 新規Webサイト構築"
             />
           </div>
@@ -191,7 +177,7 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
               id="project-status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputStyle}
             >
               <option value="未着手">未着手</option>
               <option value="進行中">進行中</option>
@@ -212,12 +198,13 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
           <ModalCancelButton onClick={handleClose}>
             キャンセル
           </ModalCancelButton>
-          <MainButton 
+          <Button 
             onClick={handleSubmit} 
             disabled={isSubmitting || isLoadingClients}
+            variant="primary"
           >
             {isSubmitting ? '登録中...' : '保存する'}
-          </MainButton>
+          </Button>
         </div>
       </div>
     </div>
